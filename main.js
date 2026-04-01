@@ -157,7 +157,8 @@ function preComputeParallaxFactor(tile){
 		return tile.precomputedParallaxFactor = Number(input);
 	}
 
-	let r = new Roll(parallaxFactor.replaceAll("@elevation", Math.abs(tile.elevation)));
+	const parallaxFactorFormula = String(parallaxFactor ?? 0).replaceAll("@elevation", Math.abs(tile.elevation));
+	let r = new Roll(parallaxFactorFormula);
 
 	if(r.isDeterministic){
 		if(foundry.utils.isNewerVersion(game.version , 12)) { r.evaluateSync(); } //check version
