@@ -146,18 +146,20 @@ function parallaxafyTile(tile){
 function preComputeParallaxFactor(tile){
 	const parallaxFactor = tile.getFlag(MODULE_ID, "parallaxFactor");
 
-	if(isEmpty(parallaxFactor) || parallaxFactor === ''){
-		return tile.precomputedParallaxFactor = game.settings.get(MODULE_ID, "defaultParallaxFactor"); //"Input is neither a number nor a valid mathematical equation"
+	if(foundry.utils.isEmpty(parallaxFactor) || parallaxFactor === ''){
+		return tile.precomputedParallaxFactor = Number(game.settings.get(MODULE_ID, "defaultParallaxFactor")) || 1; //"Input is neither a number nor a valid mathematical equation"
 	}
 
-	let input = tile.getFlag(MODULE_ID, "parallaxFactor");
+	let input = parallaxFactor;
 
 	// Check if the input is only a number
 	if (!isNaN(input)) {
 		return tile.precomputedParallaxFactor = Number(input);
 	}
 
-	let r = new Roll(parallaxFactor.replaceAll("@elevation", Math.abs(tile.elevation)));
+	const factorStr = String(parallaxFactor ?? 0).replaceAll(",", ".");
+	const parallaxFactorFormula = factorStr.replaceAll("@elevation", Math.abs(tile.elevation));
+	let r = new Roll(parallaxFactorFormula);
 
 	if(r.isDeterministic){
 		if(foundry.utils.isNewerVersion(game.version , 12)) { r.evaluateSync(); } //check version
@@ -166,11 +168,11 @@ function preComputeParallaxFactor(tile){
 		return tile.precomputedParallaxFactor = r.total;
 	}
 
-	return tile.precomputedParallaxFactor = game.settings.get(MODULE_ID, "defaultParallaxFactor"); //"Input is neither a number nor a valid mathematical equation"
+	return tile.precomputedParallaxFactor = Number(game.settings.get(MODULE_ID, "defaultParallaxFactor")) || 1; //"Input is neither a number nor a valid mathematical equation"
 }
 
 function computeParallaxFactor(tile){
-	if(tile.precomputedParallaxFactor) return tile.precomputedParallaxFactor;
+	if(tile.precomputedParallaxFactor != null) return tile.precomputedParallaxFactor;
 
 	return preComputeParallaxFactor(tile);
 }
