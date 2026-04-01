@@ -150,22 +150,25 @@ function preComputeParallaxFactor(tile){
 		return tile.precomputedParallaxFactor = Number(game.settings.get(MODULE_ID, "defaultParallaxFactor")) || 1; //"Input is neither a number nor a valid mathematical equation"
 	}
 
-	let input = parallaxFactor;
-
 	// Check if the input is only a number
-	if (!isNaN(input)) {
-		return tile.precomputedParallaxFactor = Number(input);
+	if (!isNaN(parallaxFactor)) {
+		return tile.precomputedParallaxFactor = Number(parallaxFactor);
 	}
 
-	const factorStr = String(parallaxFactor ?? 0).replaceAll(",", ".");
-	const parallaxFactorFormula = factorStr.replaceAll("@elevation", Math.abs(tile.elevation));
-	let r = new Roll(parallaxFactorFormula);
+	try {
+		const factorStr = String(parallaxFactor ?? 0).replaceAll(",", ".");
+		const elevation = tile.document?.elevation ?? tile.elevation ?? 0;
+		const parallaxFactorFormula = factorStr.replaceAll("@elevation", Math.abs(elevation));
+		let r = new Roll(parallaxFactorFormula);
 
-	if(r.isDeterministic){
-		if(foundry.utils.isNewerVersion(game.version , 12)) { r.evaluateSync(); } //check version
-		else { r.roll({async : false}); } //v11 support 
+		if(r.isDeterministic){
+			if(foundry.utils.isNewerVersion(game.version , 12)) { r.evaluateSync(); } //check version
+			else { r.roll({async : false}); } //v11 support 
 
-		return tile.precomputedParallaxFactor = r.total;
+			return tile.precomputedParallaxFactor = r.total;
+		}
+	} catch (e) {
+		console.warn(`${MODULE_ID} | Error evaluating parallaxFactor "${parallaxFactor}". Using default value.`, e);
 	}
 
 	return tile.precomputedParallaxFactor = Number(game.settings.get(MODULE_ID, "defaultParallaxFactor")) || 1; //"Input is neither a number nor a valid mathematical equation"
